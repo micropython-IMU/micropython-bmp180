@@ -3,7 +3,7 @@ micropython-bmp180
 
 micropython-bmp180 is a module for micropython which provides a class for the BMP180 pressure sensor.
 
-Breakoutboard: http://www.adafruit.com/products/1603
+Breakoutboard: http://www.adafruit.com/products/1603  
 data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/bmp180/BST-BMP180-DS000-09.pdf
 
 ## Wiring the sensor to the pyboard
