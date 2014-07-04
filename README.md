@@ -8,13 +8,13 @@ data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/bmp180/BST
 
 ## Wiring the sensor to the pyboard
 
-pyboard|bmp180
----|---
-VIN|VIN
-3V3|3Vo
-GND|GND
-SCL|SCL
-SDA|SDA
+| pyboard| bmp180 |
+|--------|--------|
+| VIN    | VIN    |
+| 3V3    | 3Vo    |
+| GND    | GND    |
+| SCL    | SCL    |
+| SDA    | SDA    |
 
 ## Using the module
 
