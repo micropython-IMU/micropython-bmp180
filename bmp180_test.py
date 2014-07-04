@@ -29,9 +29,11 @@ try:
     print('init class')
     bmp180 = BMP180('Y')
 
+    bmp180.oss = 2              # default = 0
+
     print('info')
     print(BMP180()._bmp_addr)
-    print(bmp180.oss)
+    print(bmp180.oss
     print(bmp180.chip_id)
     print(bmp180.AC1)
     print(bmp180.AC2)
