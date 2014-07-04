@@ -27,7 +27,7 @@ bmp180 = BMP180()
 ```bmp180.oss``` is the paramater for accuracy and speed. 0 gives you the lowest accuracy at the highest speed, 3 gives you the highest accuracy at the lowest speed.
 
 ```bmp180.UT()``` returns the uncompensated temperature.  
-```bmp180.UP()``` returns the uncompenstaed pressure.  
+```bmp180.UP()``` returns the uncompensated pressure.  
 ```bmp180.T()``` returns the temperature in °C.  
 ```bmp180.B5()``` returns the temperature-specific compensation value for calculating the compensated pressure.  
 ```bmp180.p()``` returns the pressure in Pa.  
