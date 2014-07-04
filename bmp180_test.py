@@ -33,7 +33,7 @@ try:
 
     print('info')
     print(BMP180()._bmp_addr)
-    print(bmp180.oss
+    print(bmp180.oss)
     print(bmp180.chip_id)
     print(bmp180.AC1)
     print(bmp180.AC2)
@@ -73,5 +73,4 @@ try:
     print('\n\tTest passed.\n')
 
 except:
-
     print('\n\tTest failed.\n')
