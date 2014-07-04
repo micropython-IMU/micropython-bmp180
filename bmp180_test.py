@@ -27,7 +27,7 @@ from bmp180 import BMP180
 try:
 
     print('init class')
-    bmp180 = BMP180()
+    bmp180 = BMP180('Y')
 
     print('info')
     print(BMP180()._bmp_addr)
