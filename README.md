@@ -26,18 +26,15 @@ bmp180 = BMP180()
 
 ```bmp180.oss``` is the paramater for accuracy and speed. 0 gives you the lowest accuracy at the highest speed, 3 gives you the highest accuracy at the lowest speed.
 
-```bmp180.UT()``` returns the uncompensated temperature.  
-```bmp180.UP()``` returns the uncompensated pressure.  
 ```bmp180.T()``` returns the temperature in °C.  
-```bmp180.B5()``` returns the temperature-specific compensation value for calculating the compensated pressure.  
 ```bmp180.p()``` returns the pressure in Pa.  
 
 ```bmp180.baseline(dt)``` returns the mean of pressure measurements taken within ```dt``` milliseconds.  
 
-```bmp180.altitude_above_ref(p_ref)``` returns the altitude relative to ```p_ref```. The pressure level passed is altitude 0.  
+```bmp180.altitude_above_ref(p_ref)``` returns the altitude relative to ```p_ref``` in m. The pressure level passed is altitude 0.  
 ```bmp180.altitude_abs(baseline)``` same as ```altitude_above_ref```, but if no ```baseline``` passed uses ```baseline(1000)``` as reference.  
-```bmp180.altitude_true(QNH)``` returns true altitude, pass local QNH in Pa as ```QNH```.  
-```bmp180.altitude_pressure()``` returns pressure altitude relative to QNH = 1013.25hPA
+```bmp180.altitude_true(QNH)``` returns true altitude in m, pass local QNH in Pa as ```QNH```.  
+```bmp180.altitude_pressure()``` returns pressure altitude relative to QNH = 1013.25hPA in m.
 
 
 
