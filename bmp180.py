@@ -28,11 +28,16 @@ class BMP180():
     _bmp_addr = 119
 
     # init
-    def __init__(self):
+    def __init__(self, XY=None):
+        
+        if XY==None: side = 2
+        elif XY=='X': side = 1
+        elif XY=='Y': side = 2
+        else: print('pass either X, Y or None, defaulting to Y'; side = 2
 
         self.oss = 0
         _bmp_addr = self._bmp_addr
-        self.bmp = pyb.I2C(2, pyb.I2C.MASTER)
+        self.bmp = pyb.I2C(side, pyb.I2C.MASTER)
         self.chip_id = self.bmp.mem_read(2, _bmp_addr, 0xD0)
         self.AC1 = unpack('>h',self.bmp.mem_read(2,_bmp_addr, 0xAA))[0]
         self.AC2 = unpack('>h',self.bmp.mem_read(2,_bmp_addr, 0xAC))[0]
