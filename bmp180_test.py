@@ -63,13 +63,6 @@ try:
     print(bmp180.altitude_above_ref(101325))
     print(bmp180.altitude_above_ref(0))
 
-    print(bmp180.altitude_abs())
-    print(bmp180.altitude_abs(101325))
-
-    print(bmp180.altitude_true(1013.25))
-
-    print(bmp180.altitude_pressure())
-
     print('\n\tTest passed.\n')
 
 except:
