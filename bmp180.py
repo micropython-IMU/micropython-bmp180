@@ -61,48 +61,43 @@ class BMP180():
     def gauge_UT(self):
 
         self.bmp.mem_write(0x2E, self._bmp_addr, 0xF4)
-        # pyb.delay(5)
-        return True
+        return pyb.millis()+5
 
     # get uncompensated temperature
-    def get_UT(self):
+    def get_UT(self, t_ready):
 
-        # pyb.delay(5)
-        return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
+        if pyb.millis() <= t_ready:
+            self.get_UT(t_ready)
+        else:
+            return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
 
     # uncompensated temperature
     def UT(self):
 
-        self.bmp.mem_write(0x2E, self._bmp_addr, 0xF4)
-        pyb.delay(5)
-        return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
+        return self.get_UT(self.gauge_UT())
 
     # gauge uncompensated pressure
     def gauge_UP(self):
 
+        delay = [5, 8, 14, 25]
         self.bmp.mem_write((0x34+(self.oss << 6)), self._bmp_addr, 0xF4)
-        # pyb.delay(delay[self.oss])
-        return True
+        return pyb.millis() + pyb.delay(delay[self.oss])
 
     # get uncompensated pressure
-    def get_UP(self):
+    def get_UP(self, t_ready):
 
-        # pyb.delay(delay[self.oss])
-        MSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF6))[0]
-        LSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF7))[0]
-        XLSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF8))[0]
-        return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
+        if pyb.millis() <= t_ready:
+            self.get_UP(t_ready)
+        else:
+            MSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF6))[0]
+            LSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF7))[0]
+            XLSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF8))[0]
+            return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
 
     # uncompensated pressure
     def UP(self):
 
-        delay = [5, 8, 14, 25]
-        self.bmp.mem_write((0x34+(self.oss << 6)), self._bmp_addr, 0xF4)
-        pyb.delay(delay[self.oss])
-        MSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF6))[0]
-        LSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF7))[0]
-        XLSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF8))[0]
-        return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
+        return self.get_UP(self.gauge_UP())
 
     # calculated temperature
     def calc_T(self, UT):
@@ -141,6 +136,14 @@ class BMP180():
         X2 = (-7357*p)/2**16
         return p+(X1+X2+3791)/2**4
 
+    # temperature
+    def T(self):
+        return self.calc_T(self.UT)
+
+    # pressure
+    def p(self):
+        return self.calc_p(self.UT, self.UP)
+
     # pressure baseline
     def baseline(self, dt=None):
         if (dt is None) or (dt == 0):
@@ -149,28 +152,17 @@ class BMP180():
         sum_p = 0
         t_stop = pyb.millis()+dt
         while pyb.millis() < t_stop:
-            sum_p = sum_p + self.calc_p(self.UT(), self.UP())
+            sum_p = sum_p + self.p()
             no = no + 1
         return sum_p / no
 
     # altitude above reference
     def altitude_above_ref(self, p, p_ref):
+        # absolute: p_ref = baseline
+        # true: p_ref = QNH*100
+        # pressure: p_ref = 101325
         if p_ref == 0:
             print('p_ref can\'t be zero')
             return None
         else:
             return 44330*(1-(p/p_ref)**(1/5.255))
-
-    # absolute altitude
-    # def altitude_abs(self, baseline=None):
-    #    if baseline is None:
-    #        baseline = self.baseline()
-    #    return self.altitude_above_ref(baseline)
-
-    # true altitude
-    # def altitude_true(self, QNH):
-    #    return self.altitude_above_ref(QNH*100)
-
-    # pressure altitude
-    # def altitude_pressure(self):
-    #    return self.altitude_above_ref(101325)
