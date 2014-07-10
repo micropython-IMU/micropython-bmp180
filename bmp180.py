@@ -99,25 +99,22 @@ class BMP180():
 
         return self.get_UP(self.gauge_UP())
 
-    # calculated temperature
-    def calc_temperature(self, UT):
-
-        X1 = (UT-self.AC6)*self.AC5/2**15
-        X2 = self.MC*2**11/(X1+self.MD)
-        B5 = X1+X2
-        return ((B5+8)/2**4)/10
-
     # B5 value for temperature compensation of pressure
-    def B5(self, UT):
+    def _B5(self, UT):
 
         X1 = (UT-self.AC6)*self.AC5/2**15
         X2 = self.MC*2**11/(X1+self.MD)
         return X1+X2
 
+    # calculated temperature
+    def calc_temperature(self, UT):
+
+        return ((self._B5(UT)+8)/2**4)/10
+
     # calculated pressure
     def calc_pressure(self, UT, UP):
 
-        B6 = self.B5(UT)-4000
+        B6 = self._B5(UT)-4000
         X1 = (self.B2*(B6*B6/2**12))/2**11
         X2 = self.AC2*B6/2**11
         X3 = X1+X2
