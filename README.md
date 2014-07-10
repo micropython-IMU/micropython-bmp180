@@ -31,4 +31,4 @@ bmp180 = BMP180()
 
 ```bmp180.baseline(dt)``` returns the mean of pressure measurements taken within ```dt``` milliseconds.  
 
-```bmp180.altitude_above_ref(p_ref)``` returns the altitude relative to ```p_ref``` in m. The pressure level passed is altitude 0. Pass ```baseline``` to geht absolute altitude, local ```QNH``` in Pa to get true altitude or ```101325``` Pa fpr pressure altitude.
+```bmp180.altitude_above_ref(p_ref)``` returns the altitude relative to ```p_ref``` in m. The pressure level passed is altitude 0. Pass ```baseline``` to geht absolute altitude, local ```QNH``` in Pa to get true altitude or ```101325``` Pa for pressure altitude.
