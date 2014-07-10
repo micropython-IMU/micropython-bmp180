@@ -50,9 +50,9 @@ try:
     print('values')
     print(bmp180.UT())
     print(bmp180.UP())
-    print(bmp180.T())
+    print(bmp180.temperature())
     print(bmp180.B5())
-    print(bmp180.p())
+    print(bmp180.pressure())
 
     print('baseline')
     print(bmp180.baseline())

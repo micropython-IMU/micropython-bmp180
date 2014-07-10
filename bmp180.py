@@ -29,16 +29,16 @@ class BMP180():
     _bmp_addr = 119
 
     # init
-    def __init__(self, XY=None):
+    def __init__(self, side_char=None):
 
-        if XY is None:
+        if side_char is None:
             side = 2
-        elif XY == 'X':
+        elif str(side_char) in ('X', '1'):
             side = 1
-        elif XY == 'Y':
+        elif str(side_char) in ('Y', '2'):
             side = 2
         else:
-            print('pass either X, Y or None, defaulting to Y')
+            print('pass either X, 1, Y, 2 or None, defaulting to Y')
             side = 2
 
         self.oss = 0
@@ -100,7 +100,7 @@ class BMP180():
         return self.get_UP(self.gauge_UP())
 
     # calculated temperature
-    def calc_T(self, UT):
+    def calc_temperature(self, UT):
 
         X1 = (UT-self.AC6)*self.AC5/2**15
         X2 = self.MC*2**11/(X1+self.MD)
@@ -115,7 +115,7 @@ class BMP180():
         return X1+X2
 
     # calculated pressure
-    def calc_p(self, UT, UP):
+    def calc_pressure(self, UT, UP):
 
         B6 = self.B5(UT)-4000
         X1 = (self.B2*(B6*B6/2**12))/2**11
@@ -128,41 +128,41 @@ class BMP180():
         B4 = self.AC4*(X3+32768)/2**15
         B7 = (abs(UP)-B3)*(50000 >> self.oss)
         if B7 < 0x80000000:
-            p = (B7*2)/B4
+            pressure = (B7*2)/B4
         else:
-            p = (B7/B4)*2
-        X1 = (p/2**8)**2
+            pressure = (B7/B4)*2
+        X1 = (pressure/2**8)**2
         X1 = (X1*3038)/2**16
-        X2 = (-7357*p)/2**16
-        return p+(X1+X2+3791)/2**4
+        X2 = (-7357*pressure)/2**16
+        return pressure+(X1+X2+3791)/2**4
 
     # temperature
-    def T(self):
-        return self.calc_T(self.UT)
+    def temperature(self):
+        return self.calc_temperature(self.UT)
 
     # pressure
-    def p(self):
-        return self.calc_p(self.UT, self.UP)
+    def pressure(self):
+        return self.calc_pressure(self.UT, self.UP)
 
     # pressure baseline
     def baseline(self, dt=None):
         if (dt is None) or (dt == 0):
             dt = 1000
-        no = 0
-        sum_p = 0
+        count = 0
+        sum_pressure = 0
         t_stop = pyb.millis()+dt
         while pyb.millis() < t_stop:
-            sum_p = sum_p + self.p()
-            no = no + 1
-        return sum_p / no
+            sum_pressure = sum_pressure + self.pressure()
+            count = count + 1
+        return sum_pressure / count
 
     # altitude above reference
-    def altitude_above_ref(self, p, p_ref):
-        # absolute: p_ref = baseline
-        # true: p_ref = QNH*100
-        # pressure: p_ref = 101325
-        if p_ref == 0:
-            print('p_ref can\'t be zero')
+    def altitude_above_ref(self, pressure, pressure_ref):
+        # absolute: pressure_ref = baseline
+        # true: pressure_ref = QNH*100
+        # pressure: pressure_ref = 101325
+        if pressure_ref == 0:
+            print('pressure_ref can\'t be zero')
             return None
         else:
-            return 44330*(1-(p/p_ref)**(1/5.255))
+            return 44330*(1-(pressure/pressure_ref)**(1/5.255))
