@@ -57,12 +57,41 @@ class BMP180():
         self.MC = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xBC))[0]
         self.MD = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xBE))[0]
 
+    # gauge uncompensated temperature
+    def gauge_UT(self):
+
+        self.bmp.mem_write(0x2E, self._bmp_addr, 0xF4)
+        # pyb.delay(5)
+        return True
+
+    # get uncompensated temperature
+    def get_UT(self):
+
+        # pyb.delay(5)
+        return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
+
     # uncompensated temperature
     def UT(self):
 
         self.bmp.mem_write(0x2E, self._bmp_addr, 0xF4)
         pyb.delay(5)
         return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
+
+    # gauge uncompensated pressure
+    def gauge_UP(self):
+
+        self.bmp.mem_write((0x34+(self.oss << 6)), self._bmp_addr, 0xF4)
+        # pyb.delay(delay[self.oss])
+        return True
+
+    # get uncompensated pressure
+    def get_UP(self):
+
+        # pyb.delay(delay[self.oss])
+        MSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF6))[0]
+        LSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF7))[0]
+        XLSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF8))[0]
+        return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
 
     # uncompensated pressure
     def UP(self):
@@ -76,24 +105,24 @@ class BMP180():
         return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
 
     # calculated temperature
-    def T(self):
+    def calc_T(self, UT):
 
-        X1 = (self.UT()-self.AC6)*self.AC5/2**15
+        X1 = (UT-self.AC6)*self.AC5/2**15
         X2 = self.MC*2**11/(X1+self.MD)
         B5 = X1+X2
         return ((B5+8)/2**4)/10
 
     # B5 value for temperature compensation of pressure
-    def B5(self):
+    def B5(self, UT):
 
-        X1 = (self.UT()-self.AC6)*self.AC5/2**15
+        X1 = (UT-self.AC6)*self.AC5/2**15
         X2 = self.MC*2**11/(X1+self.MD)
         return X1+X2
 
     # calculated pressure
-    def p(self):
+    def calc_p(self, UT, UP):
 
-        B6 = self.B5()-4000
+        B6 = self.B5(UT)-4000
         X1 = (self.B2*(B6*B6/2**12))/2**11
         X2 = self.AC2*B6/2**11
         X3 = X1+X2
@@ -102,7 +131,7 @@ class BMP180():
         X2 = (self.B1*(B6*B6/2**12))/2**16
         X3 = ((X1+X2)+2)/2**2
         B4 = self.AC4*(X3+32768)/2**15
-        B7 = (abs(self.UP())-B3)*(50000 >> self.oss)
+        B7 = (abs(UP)-B3)*(50000 >> self.oss)
         if B7 < 0x80000000:
             p = (B7*2)/B4
         else:
@@ -120,28 +149,28 @@ class BMP180():
         sum_p = 0
         t_stop = pyb.millis()+dt
         while pyb.millis() < t_stop:
-            sum_p = sum_p + self.p()
+            sum_p = sum_p + self.calc_p(self.UT(), self.UP())
             no = no + 1
         return sum_p / no
 
     # altitude above reference
-    def altitude_above_ref(self, p_ref):
+    def altitude_above_ref(self, p, p_ref):
         if p_ref == 0:
             print('p_ref can\'t be zero')
             return None
         else:
-            return 44330*(1-(self.p()/p_ref)**(1/5.255))
+            return 44330*(1-(p/p_ref)**(1/5.255))
 
     # absolute altitude
-    def altitude_abs(self, baseline=None):
-        if baseline is None:
-            baseline = self.baseline()
-        return self.altitude_above_ref(baseline)
+    # def altitude_abs(self, baseline=None):
+    #    if baseline is None:
+    #        baseline = self.baseline()
+    #    return self.altitude_above_ref(baseline)
 
     # true altitude
-    def altitude_true(self, QNH):
-        return self.altitude_above_ref(QNH*100)
+    # def altitude_true(self, QNH):
+    #    return self.altitude_above_ref(QNH*100)
 
     # pressure altitude
-    def altitude_pressure(self):
-        return self.altitude_above_ref(101325)
+    # def altitude_pressure(self):
+    #    return self.altitude_above_ref(101325)
