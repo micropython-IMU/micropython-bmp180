@@ -18,7 +18,7 @@ data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/bmp180/BST
 
 ## Using the module
 
-https://raw.githubusercontent.com/turbinenreiter/micropython-bmp180/master/classes_BMP180.png
+![UML diagramm](https://raw.githubusercontent.com/turbinenreiter/micropython-bmp180/master/classes_BMP180.png "UML diagramm")
 
 create the class:
 ```python
