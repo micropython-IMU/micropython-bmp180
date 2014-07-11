@@ -24,7 +24,7 @@ from bmp180 import BMP180
 bmp180 = BMP180()
 ```
 
-```bmp180.oss``` is the paramater for accuracy and speed. 0 gives you the lowest accuracy at the highest speed, 3 gives you the highest accuracy at the lowest speed.
+```bmp180.oversampling_setting``` is the paramater for accuracy and speed. 0 gives you the lowest accuracy at the highest speed, 3 gives you the highest accuracy at the lowest speed.
 
 ```bmp180.temperature()``` returns the temperature in °C.  
 ```bmp180.pressure()``` returns the pressure in Pa.  

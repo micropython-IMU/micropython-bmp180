@@ -41,89 +41,89 @@ class BMP180():
             print('pass either X, 1, Y, 2 or None, defaulting to Y')
             side = 2
 
-        self.oss = 0
+        self.oversampling_setting = 0
         _bmp_addr = self._bmp_addr
-        self.bmp = pyb.I2C(side, pyb.I2C.MASTER)
-        self.chip_id = self.bmp.mem_read(2, _bmp_addr, 0xD0)
-        self.AC1 = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xAA))[0]
-        self.AC2 = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xAC))[0]
-        self.AC3 = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xAE))[0]
-        self.AC4 = unpack('>H', self.bmp.mem_read(2, _bmp_addr, 0xB0))[0]
-        self.AC5 = unpack('>H', self.bmp.mem_read(2, _bmp_addr, 0xB2))[0]
-        self.AC6 = unpack('>H', self.bmp.mem_read(2, _bmp_addr, 0xB4))[0]
-        self.B1 = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xB6))[0]
-        self.B2 = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xB8))[0]
-        self.MB = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xBA))[0]
-        self.MC = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xBC))[0]
-        self.MD = unpack('>h', self.bmp.mem_read(2, _bmp_addr, 0xBE))[0]
+        self.bmp_i2c = pyb.I2C(side, pyb.I2C.MASTER)
+        self.chip_id = self.bmp_i2c.mem_read(2, _bmp_addr, 0xD0)
+        self.cal_AC1 = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xAA))[0]
+        self.cal_AC2 = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xAC))[0]
+        self.cal_AC3 = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xAE))[0]
+        self.cal_AC4 = unpack('>H', self.bmp_i2c.mem_read(2, _bmp_addr, 0xB0))[0]
+        self.cal_AC5 = unpack('>H', self.bmp_i2c.mem_read(2, _bmp_addr, 0xB2))[0]
+        self.cal_AC6 = unpack('>H', self.bmp_i2c.mem_read(2, _bmp_addr, 0xB4))[0]
+        self.cal_B1 = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xB6))[0]
+        self.cal_B2 = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xB8))[0]
+        self.cal_MB = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xBA))[0]
+        self.cal_MC = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xBC))[0]
+        self.cal_MD = unpack('>h', self.bmp_i2c.mem_read(2, _bmp_addr, 0xBE))[0]
 
     # gauge uncompensated temperature
-    def gauge_UT(self):
+    def gauge_uncompensated_temperature(self):
 
-        self.bmp.mem_write(0x2E, self._bmp_addr, 0xF4)
+        self.bmp_i2c.mem_write(0x2E, self._bmp_addr, 0xF4)
         return pyb.millis()+5
 
     # get uncompensated temperature
-    def get_UT(self, t_ready):
+    def get_uncompensated_temperature(self, t_ready):
 
         if pyb.millis() <= t_ready:
-            self.get_UT(t_ready)
+            self.get_uncompensated_temperature(t_ready)
         else:
-            return unpack('>h', self.bmp.mem_read(2, self._bmp_addr, 0xF6))[0]
+            return unpack('>h', self.bmp_i2c.mem_read(2, self._bmp_addr, 0xF6))[0]
 
     # uncompensated temperature
-    def UT(self):
+    def uncompensated_temperature(self):
 
-        return self.get_UT(self.gauge_UT())
+        return self.get_uncompensated_temperature(self.gauge_uncompensated_temperature())
 
     # gauge uncompensated pressure
-    def gauge_UP(self):
+    def gauge_uncompensated_pressure(self):
 
         delay = [5, 8, 14, 25]
-        self.bmp.mem_write((0x34+(self.oss << 6)), self._bmp_addr, 0xF4)
-        return pyb.millis() + pyb.delay(delay[self.oss])
+        self.bmp_i2c.mem_write((0x34+(self.oversampling_setting << 6)), self._bmp_addr, 0xF4)
+        return pyb.millis() + pyb.delay(delay[self.oversampling_setting])
 
     # get uncompensated pressure
-    def get_UP(self, t_ready):
+    def get_uncompensated_pressure(self, t_ready):
 
         if pyb.millis() <= t_ready:
-            self.get_UP(t_ready)
+            self.get_uncompensated_pressure(t_ready)
         else:
-            MSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF6))[0]
-            LSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF7))[0]
-            XLSB = unpack('<h', self.bmp.mem_read(1, self._bmp_addr, 0xF8))[0]
-            return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oss)
+            MSB = unpack('<h', self.bmp_i2c.mem_read(1, self._bmp_addr, 0xF6))[0]
+            LSB = unpack('<h', self.bmp_i2c.mem_read(1, self._bmp_addr, 0xF7))[0]
+            XLSB = unpack('<h', self.bmp_i2c.mem_read(1, self._bmp_addr, 0xF8))[0]
+            return ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversampling_setting)
 
     # uncompensated pressure
-    def UP(self):
+    def uncompensated_pressure(self):
 
-        return self.get_UP(self.gauge_UP())
+        return self.get_uncompensated_pressure(self.gauge_uncompensated_pressure())
 
     # B5 value for temperature compensation of pressure
-    def _B5(self, UT):
+    def _B5(self, uncompensated_temperature):
 
-        X1 = (UT-self.AC6)*self.AC5/2**15
-        X2 = self.MC*2**11/(X1+self.MD)
+        X1 = (uncompensated_temperature-self.cal_AC6)*self.cal_AC5/2**15
+        X2 = self.cal_MC*2**11/(X1+self.cal_MD)
         return X1+X2
 
     # calculated temperature
-    def calc_temperature(self, UT):
+    def calc_temperature(self, uncompensated_temperature):
 
-        return ((self._B5(UT)+8)/2**4)/10
+        return ((self._B5(uncompensated_temperature)+8)/2**4)/10
 
     # calculated pressure
-    def calc_pressure(self, UT, UP):
+    def calc_pressure(self, uncompensated_temperature, uncompensated_pressure):
 
-        B6 = self._B5(UT)-4000
-        X1 = (self.B2*(B6*B6/2**12))/2**11
-        X2 = self.AC2*B6/2**11
+        B6 = self._B5(uncompensated_temperature)-4000
+        X1 = (self.cal_B2*(B6*B6/2**12))/2**11
+        X2 = self.cal_AC2*B6/2**11
         X3 = X1+X2
-        B3 = ((int((self.AC1*4+X3)) << self.oss)+2)/4
-        X1 = self.AC3*B6/2**13
-        X2 = (self.B1*(B6*B6/2**12))/2**16
+        B3 = ((int((self.cal_AC1*4+X3)) << self.oversampling_setting)+2)/4
+        X1 = self.cal_AC3*B6/2**13
+        X2 = (self.cal_B1*(B6*B6/2**12))/2**16
         X3 = ((X1+X2)+2)/2**2
-        B4 = self.AC4*(X3+32768)/2**15
-        B7 = (abs(UP)-B3)*(50000 >> self.oss)
+        B4 = self.cal_AC4*(X3+32768)/2**15
+        B7 = (abs(uncompensated_pressure)-B3)*(50000 >> self.oversampling_setting)
         if B7 < 0x80000000:
             pressure = (B7*2)/B4
         else:
@@ -135,11 +135,11 @@ class BMP180():
 
     # temperature
     def temperature(self):
-        return self.calc_temperature(self.UT)
+        return self.calc_temperature(self.uncompensated_temperature)
 
     # pressure
     def pressure(self):
-        return self.calc_pressure(self.UT, self.UP)
+        return self.calc_pressure(self.uncompensated_temperature, self.uncompensated_pressure)
 
     # pressure baseline
     def baseline(self, dt=None):
