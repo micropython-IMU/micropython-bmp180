@@ -7,8 +7,7 @@ bmp180 is a micropython module for the Bosch BMP180 sensor. It measures
 temperature as well as pressure, with a high enough resolution to calculate
 altitude.
 Breakoutboard: http://www.adafruit.com/products/1603  
-data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/
-bmp180/BST-BMP180-DS000-09.pdf
+data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/bmp180/BST-BMP180-DS000-09.pdf
 
 ### Wiring the sensor to the pyboard
 
