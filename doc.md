@@ -16,11 +16,11 @@ Methods
 
 ``altitude_above_ref(self, pressure, pressure_ref=None)``  
 Calculates and returns the altitude relative to a reference pressure.  
-For|use:
----|---
-absolute|pressure_ref = baseline  
-true|pressure_ref = QNH*100  
-pressure|pressure_ref = 101325  
+|altitude|pressure_ref|
+|---|---|
+|absolute|baseline|  
+|true|QNH*100|  
+|pressure|101325 or None|  
 
 ``baseline(self, dt=None)``  
 Measures the pressure for a given time and returns the mean of the  
