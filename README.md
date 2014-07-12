@@ -104,3 +104,7 @@ Sets the accuracy.
 * 1
 * 2
 * 3 highest accuracy, slowest
+
+``pressure_MSL``  
+Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.
+
