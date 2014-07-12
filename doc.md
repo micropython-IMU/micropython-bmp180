@@ -63,10 +63,10 @@ Measures and returns the uncompensated temperature.
 
 Instance variables
 ------------------
-``chip_id``
+``chip_id``  
 ID of chip is hardcoded on the sensor.
 
-``oversample_sett``
+``oversample_sett``  
 Sets the accuracy.
 * 0 lowest accuracy, fastest
 * 1
