@@ -29,7 +29,7 @@ Methods
     Calculates and returns the compensated pressure.
 
 ```calc_temperature(self, uncomp_temperature)```  
-    Calculates and returns the compensted temperature.
+    Calculates and returns the compensted temperature.  
 
 ```gauge_uncomp_pressure(self)```  
     Starts the pressure measurement and returns the time it will be  
