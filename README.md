@@ -45,28 +45,27 @@ Methods
 --------------
 
 
-``altitude_above_ref(self)``  
-Calculates and returns the altitude relative to a reference pressure.  
+``altitude_above_ref()``  
+Calculates and returns the altitude relative to a the baseline.  
 
-``baseline(self, dt=None)``  
-Measures the pressure for a given time and returns the mean of the  
-measurements.
+``baseline(dt=None)``  
+Measures the pressure for a given time and sets the baseline to  
+the mean of the measurements. If no dt is given it will default  
+to 10 seconds.
 
-``gauge_pressure(self)``  
-Starts the pressure measurement and returns the time it will be  
+``gauge_pressure()``  
+Starts the pressure measurement and sets the time it will be  
 finished.
 
-``gauge_temperature(self)``  
-Starts the temperature measurement and returns the time it will be  
+``gauge_temperature()``  
+Starts the temperature measurement and sets the time it will be  
 finished.
 
-``get_pressure(self, t_ready)``  
-Waits until the pressure measurement is finished, then returns the  
-uncompensated temperature.
+``get_pressure()``  
+Returns the pressure. If not gauged first, it will do that first.
 
-``get_temperature(self, t_ready)``  
-Waits until the temperature measurement is finished, then returns the  
-uncompensated temperature.
+``get_temperature()``  
+Returns the temperature. If not gauged first, it will do that first.
 
 Instance variables
 ------------------
@@ -74,7 +73,7 @@ Instance variables
 ID of chip is hardcoded on the sensor.
 
 ``oversample_sett``  
-Sets the accuracy.
+Sets the accuracy. Default: 0  
 * 0 lowest accuracy, fastest
 * 1
 * 2
