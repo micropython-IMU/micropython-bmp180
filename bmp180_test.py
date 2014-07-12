@@ -29,11 +29,11 @@ try:
     print('init class')
     bmp180 = BMP180('Y')
 
-    bmp180.oversampling_setting = 2              # default = 0
+    bmp180.oversample_sett = 2              # default = 0
 
     print('info')
     print(BMP180()._bmp_addr)
-    print(bmp180.oversampling_setting)
+    print(bmp180.oversample_sett)
     print(bmp180.chip_id)
     print(bmp180.cal_AC1)
     print(bmp180.cal_AC2)
@@ -48,8 +48,8 @@ try:
     print(bmp180.cal_MD)
 
     print('values')
-    print(bmp180.uncompensated_temperature())
-    print(bmp180.uncompensated_pressure())
+    print(bmp180.uncomp_temperature())
+    print(bmp180.uncomp_pressure())
     print(bmp180.temperature())
     print(bmp180.B5())
     print(bmp180.pressure())

@@ -2,6 +2,9 @@
 bmp180 is a micropython module for the Bosch BMP180 sensor. It measures
 temperature as well as pressure, with a high enough resolution to calculate
 altitude.
+Breakoutboard: http://www.adafruit.com/products/1603  
+data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/
+bmp180/BST-BMP180-DS000-09.pdf
 
 The MIT License (MIT)
 Copyright (c) 2014 Sebastian Plamauer, oeplse@gmail.com
@@ -201,10 +204,12 @@ class BMP180():
     def altitude_above_ref(self, pressure, pressure_ref=None):
         '''
         Calculates and returns the altitude relative to a reference pressure.
-        For:             use:
-            absolute        pressure_ref = baseline
-            true            pressure_ref = QNH*100
-            pressure        pressure_ref = 101325
+
+        | altitude |   pressure_ref |  
+        |:--------:|:--------------:|  
+        | absolute |       baseline |  
+        | true     |        QNH*100 |  
+        | pressure | 101325 or None |  
         '''
         if pressure_ref == None:
             pressure_ref = self.pressure_MSL
