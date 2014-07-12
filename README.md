@@ -38,7 +38,7 @@ Note that in this example the altitude will be around zero, because the pressure
 Classes
 -------
 ``BMP180``  
-Module for the BMP180 pressure sensor.
+Module for the BMP180 pressure sensor.  
 ![UML diagramm](https://raw.githubusercontent.com/turbinenreiter/micropython-bmp180/master/classes_BMP180.png "UML diagramm")
 
 
