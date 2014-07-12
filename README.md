@@ -86,7 +86,7 @@ To get different altitudes, use this as baselines:
 
 | altitude |       baseline |  
 |:--------:|:--------------:|  
-| absolute |       baseline |  
+| absolute |     baseline() |  
 | true     |        QNH*100 |  
 | pressure | 101325 or None |  
 
