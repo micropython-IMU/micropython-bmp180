@@ -45,7 +45,7 @@ Methods
 --------------
 
 
-``altitude_above_ref()``  
+``altitude_above_baseline()``  
 Calculates and returns the altitude relative to a the baseline.  
 
 ``baseline(dt=None)``  
