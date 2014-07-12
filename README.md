@@ -26,10 +26,10 @@ Example:
 from bmp180 import BMP180
 bmp180 = BMP180()
 bmp180.oversample_sett = 2
-temp = bmp180.temperature()
+temp = bmp180.get_temperature()
 baseline = bmp180.baseline(1000)
-p = bmp180.pressure()
-altitude = bmp180.altitude_above_ref(p, baseline)
+p = bmp180.get_pressure()
+altitude = bmp180.altitude_above_ref()
 print(temp, baseline, p, altitude)
 ```
 Note that in this example the altitude will be around zero, because the pressure measurment is done immediatly after the baseline setting.
@@ -45,52 +45,28 @@ Methods
 --------------
 
 
-``altitude_above_ref(self, pressure, pressure_ref=None)``  
+``altitude_above_ref(self)``  
 Calculates and returns the altitude relative to a reference pressure.  
-
-| altitude |   pressure_ref |  
-|:--------:|:--------------:|  
-| absolute |       baseline |  
-| true     |        QNH*100 |  
-| pressure | 101325 or None |  
 
 ``baseline(self, dt=None)``  
 Measures the pressure for a given time and returns the mean of the  
 measurements.
 
-``calc_pressure(self, uncomp_temperature, uncomp_pressure)``  
-Calculates and returns the compensated pressure.
-
-``calc_temperature(self, uncomp_temperature)``  
-Calculates and returns the compensted temperature.  
-
-``gauge_uncomp_pressure(self)``  
+``gauge_pressure(self)``  
 Starts the pressure measurement and returns the time it will be  
 finished.
 
-``gauge_uncomp_temperature(self)``  
+``gauge_temperature(self)``  
 Starts the temperature measurement and returns the time it will be  
 finished.
 
-``get_uncomp_pressure(self, t_ready)``  
+``get_pressure(self, t_ready)``  
 Waits until the pressure measurement is finished, then returns the  
 uncompensated temperature.
 
-``get_uncomp_temperature(self, t_ready)``  
+``get_temperature(self, t_ready)``  
 Waits until the temperature measurement is finished, then returns the  
 uncompensated temperature.
-
-``pressure(self)``  
-Measures and returns the compensated pressure.
-
-``temperature(self)``  
-Measures and returns the compensated temperature.
-
-``uncomp_pressure(self)``  
-Measures and returns the uncompensated pressure.
-
-``uncomp_temperature(self)``  
-Measures and returns the uncompensated temperature.
 
 Instance variables
 ------------------
@@ -104,6 +80,14 @@ Sets the accuracy.
 * 2
 * 3 highest accuracy, slowest
 
-``pressure_MSL``  
-Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.
+``baseline``  
+Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
+When evoked, the method ``baseline(dt)`` sets this variable to the local pressure.
+To get different altitudes, use this as baselines:
+
+| altitude |       baseline |  
+|:--------:|:--------------:|  
+| absolute |       baseline |  
+| true     |        QNH*100 |  
+| pressure | 101325 or None |  
 
