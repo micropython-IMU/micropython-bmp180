@@ -16,6 +16,7 @@ Methods
 
 ``altitude_above_ref(self, pressure, pressure_ref=None)``  
 Calculates and returns the altitude relative to a reference pressure.  
+
 |altitude|pressure_ref|  
 |---|---|  
 |absolute|baseline|  
