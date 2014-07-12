@@ -9,62 +9,64 @@ Classes
 BMP180 
 Module for the BMP180 pressure sensor.
 
-Ancestors (in MRO)
-------------------
-bmp180_doc.BMP180
-builtins.object
 
-Static methods
+Methods
 --------------
-__init__(self, side_char=None)
 
-altitude_above_ref(self, pressure, pressure_ref=None)
-    Calculates and returns the altitude relative to a reference pressure.
-    For:             use:
-        absolute        pressure_ref = baseline
-        true            pressure_ref = QNH*100
-        pressure        pressure_ref = 101325
 
-baseline(self, dt=None)
-    Measures the pressure for a given time and returns the mean of the
+```altitude_above_ref(self, pressure, pressure_ref=None)```  
+    Calculates and returns the altitude relative to a reference pressure.  
+    For:             use:  
+        absolute        pressure_ref = baseline  
+        true            pressure_ref = QNH*100  
+        pressure        pressure_ref = 101325  
+
+```baseline(self, dt=None)```  
+    Measures the pressure for a given time and returns the mean of the  
     measurements.
 
-calc_pressure(self, uncomp_temperature, uncomp_pressure)
+```calc_pressure(self, uncomp_temperature, uncomp_pressure)```  
     Calculates and returns the compensated pressure.
 
-calc_temperature(self, uncomp_temperature)
+```calc_temperature(self, uncomp_temperature)```  
     Calculates and returns the compensted temperature.
 
-gauge_uncomp_pressure(self)
-    Starts the pressure measurement and returns the time it will be
+```gauge_uncomp_pressure(self)```  
+    Starts the pressure measurement and returns the time it will be  
     finished.
 
-gauge_uncomp_temperature(self)
-    Starts the temperature measurement and returns the time it will be
+```gauge_uncomp_temperature(self)```  
+    Starts the temperature measurement and returns the time it will be  
     finished.
 
-get_uncomp_pressure(self, t_ready)
-    Waits until the pressure measurement is finished, then returns the
+```get_uncomp_pressure(self, t_ready)```  
+    Waits until the pressure measurement is finished, then returns the  
     uncompensated temperature.
 
-get_uncomp_temperature(self, t_ready)
-    Waits until the temperature measurement is finished, then returns the
+```get_uncomp_temperature(self, t_ready)```  
+    Waits until the temperature measurement is finished, then returns the  
     uncompensated temperature.
 
-pressure(self)
+```pressure(self)```  
     Measures and returns the compensated pressure.
 
-temperature(self)
+```temperature(self)```  
     Measures and returns the compensated temperature.
 
-uncomp_pressure(self)
+```uncomp_pressure(self)```  
     Measures and returns the uncompensated pressure.
 
-uncomp_temperature(self)
+```uncomp_temperature(self)```  
     Measures and returns the uncompensated temperature.
 
 Instance variables
 ------------------
-chip_id
+```chip_id```
+    ID of chip is hardcoded on the sensor.
 
-oversample_sett
+```oversample_sett```
+    Sets the accuracy.
+    * 0 lowest accuracy, fastest
+    * 1
+    * 2
+    * 3 highest accuracy, slowest
