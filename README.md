@@ -29,7 +29,7 @@ bmp180.oversample_sett = 2
 temp = bmp180.get_temperature()
 baseline = bmp180.baseline(1000)
 p = bmp180.get_pressure()
-altitude = bmp180.altitude_above_ref()
+altitude = bmp180.get_altitude()
 print(temp, baseline, p, altitude)
 ```
 Note that in this example the altitude will be around zero, because the pressure measurment is done immediatly after the baseline setting.
@@ -45,7 +45,7 @@ Methods
 --------------
 
 
-``altitude_above_baseline()``  
+``get_altitude()``  
 Calculates and returns the altitude relative to a the baseline.  
 
 ``baseline(dt=None)``  
@@ -90,3 +90,5 @@ To get different altitudes, use this as baselines:
 | true     |        QNH*100 |  
 | pressure | 101325 or None |  
 
+``temp_comp_sample_rate``  
+The refresh rate of the temperature measurment for compensating pressure in Hz.
