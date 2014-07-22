@@ -82,6 +82,7 @@ class BMP180():
         self._B5 = None
         self._t_B5 = None
         self._dt_B5 = 1000/self.temp_comp_sample_rate
+        self._UT = None
 
     # gauge temperature
     def gauge_temperature(self):
@@ -103,8 +104,8 @@ class BMP180():
             self.gauge_temperature()
         while pyb.millis() <= self._t_temperature_ready:
             pass
-        UT = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6))[0]
-        X1 = (UT-self._AC6)*self._AC5/2**15
+        self._UT = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6))[0]
+        X1 = (self._UT-self._AC6)*self._AC5/2**15
         X2 = self._MC*2**11/(X1+self._MD)
         self._t_temperature_ready = None
         return (((X1+X2)+8)/2**4)/10
@@ -115,7 +116,8 @@ class BMP180():
         Calculates and sets compensation value B5.
         '''
         if (self._B5 is None) or ((pyb.millis()-self._t_B5) > self._dt_B5):
-            X1 = (self.get_temperature()-self._AC6)*self._AC5/2**15
+            self.get_temperature()
+            X1 = (self._UT-self._AC6)*self._AC5/2**15
             X2 = self._MC*2**11/(X1+self._MD)
             self._B5 = X1+X2
             self._t_B5 = pyb.millis()
