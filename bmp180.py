@@ -78,6 +78,7 @@ class BMP180():
         self._B5 = None
         self._t_B5 = None
         self._dt_B5 = 1000/self.temp_comp_sample_rate
+        self._UT = None
 
     # gauge temperature
     def gauge_temperature(self):
