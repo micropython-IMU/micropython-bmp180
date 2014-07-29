@@ -3,8 +3,7 @@ bmp180 is a micropython module for the Bosch BMP180 sensor. It measures
 temperature as well as pressure, with a high enough resolution to calculate
 altitude.
 Breakoutboard: http://www.adafruit.com/products/1603  
-data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/
-bmp180/BST-BMP180-DS000-09.pdf
+data-sheet: http://ae-bst.resource.bosch.com/media/products/dokumente/bmp180/BST-BMP180-DS000-09.pdf
 
 The MIT License (MIT)
 Copyright (c) 2014 Sebastian Plamauer, oeplse@gmail.com
@@ -27,6 +26,7 @@ THE SOFTWARE.
 
 from struct import unpack as unp
 import pyb
+import math
 
 
 # BMP180 class
@@ -41,17 +41,12 @@ class BMP180():
     def __init__(self, side_str=None):
 
         # choose which i2c port to use
-        if side_str is None:
-            side_str = 'Y'
-        side_dict = {
-                        'X': 1,
-                        'Y': 2,
-                        '1': 1,
-                        '2': 2,     }
-        try:
-            side = side_dict[side_str]
-        except KeyError:
-            print('pass either X, 1, Y, 2 or None, defaulting to Y')
+        if side_str == 'X':
+            side = 1
+        elif side_str == 'Y':
+            side = 2
+        else:
+            print('pass either X or Y, defaulting to Y')
             side = 2
 
         # create i2c obect
@@ -73,11 +68,12 @@ class BMP180():
 
         # settings to be adjusted by user
         self.oversample_sett = 0
-        self.temp_comp_sample_rate = 0.1
+        self.temp_comp_sample_rate = 1
         self.baseline = 101325
 
         # priate attributes not to be used by user
         self._t_temperature_ready = None
+        self._UT = None
         self._t_pressure_ready = None
         self._B5 = None
         self._t_B5 = None
@@ -91,6 +87,7 @@ class BMP180():
         '''
         self._bmp_i2c.mem_write(0x2E, self._bmp_addr, 0xF4)
         self._t_temperature_ready = pyb.millis()+5
+
         return
 
     # get temperature
@@ -101,12 +98,15 @@ class BMP180():
         '''
         if self._t_temperature_ready is None:
             self.gauge_temperature()
+
         while pyb.millis() <= self._t_temperature_ready:
             pass
-        UT = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6))[0]
-        X1 = (UT-self._AC6)*self._AC5/2**15
+
+        self._UT = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6))[0]
+        X1 = (self._UT-self._AC6)*self._AC5/2**15
         X2 = self._MC*2**11/(X1+self._MD)
         self._t_temperature_ready = None
+
         return (((X1+X2)+8)/2**4)/10
 
     # B5 value for temperature compensation of pressure
@@ -115,10 +115,12 @@ class BMP180():
         Calculates and sets compensation value B5.
         '''
         if (self._B5 is None) or ((pyb.millis()-self._t_B5) > self._dt_B5):
-            X1 = (self.get_temperature()-self._AC6)*self._AC5/2**15
+            self.get_temperature()
+            X1 = (self._UT-self._AC6)*self._AC5/2**15
             X2 = self._MC*2**11/(X1+self._MD)
             self._B5 = X1+X2
             self._t_B5 = pyb.millis()
+
         return
 
     # gauge pressure
@@ -134,14 +136,11 @@ class BMP180():
             print('oversample_sett can only be 0, 1, 2 or 3, using 3 instead')
             self.oversample_sett = 3
 
-        delays = [5, 8, 14, 25]
+        delays = (5, 8, 14, 25)
 
-        self._bmp_i2c.mem_write(
-                                (0x34+(self.oversample_sett << 6)),
-                                self._bmp_addr,
-                                0xF4                                )
-
+        self._bmp_i2c.mem_write((0x34+(self.oversample_sett << 6)),self._bmp_addr,0xF4)
         self._t_pressure_ready = pyb.millis() + delays[self.oversample_sett]
+
         return
 
     # get pressure
@@ -151,23 +150,27 @@ class BMP180():
         pressure.
         '''
         self._get_B5()
+
         if self._t_pressure_ready is None:
             self.gauge_pressure()
+
         while pyb.millis() <= self._t_pressure_ready:
             pass
+
         MSB = unp('<h', self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF6))[0]
         LSB = unp('<h', self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF7))[0]
         XLSB = unp('<h', self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF8))[0]
+
         UP = ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversample_sett)
         B6 = self._B5-4000
-        X1 = (self._B2*(B6*B6/2**12))/2**11
+        X1 = (self._B2*(B6**2/2**12))/2**11
         X2 = self._AC2*B6/2**11
         X3 = X1+X2
         B3 = ((int((self._AC1*4+X3)) << self.oversample_sett)+2)/4
         X1 = self._AC3*B6/2**13
-        X2 = (self._B1*(B6*B6/2**12))/2**16
+        X2 = (self._B1*(B6**2/2**12))/2**16
         X3 = ((X1+X2)+2)/2**2
-        B4 = self._AC4*(X3+32768)/2**15
+        B4 = abs(self._AC4)*(X3+32768)/2**15
         B7 = (abs(UP)-B3) * (50000 >> self.oversample_sett)
         if B7 < 0x80000000:
             pressure = (B7*2)/B4
@@ -177,23 +180,28 @@ class BMP180():
         X1 = (X1*3038)/2**16
         X2 = (-7357*pressure)/2**16
         self._t_pressure_ready = None
+
         return pressure+(X1+X2+3791)/2**4
 
     # pressure baseline
     def set_baseline(self, dt=None):
         '''
-        Measures the pressure for a given time and sets the mean of the
-        measurements.
+        Measures the pressure for a given time and sets baseline to the mean of
+        the measurements.
         '''
         if (dt is None) or (dt == 0):
             dt = 1000
+
         count = 0
         sum_pressure = 0
         t_stop = pyb.millis() + dt
+
         while pyb.millis() < t_stop:
             sum_pressure = sum_pressure + self.get_pressure()
             count = count + 1
+
         self.baseline = sum_pressure / count
+
         return
 
     # altitude above reference
@@ -208,7 +216,8 @@ class BMP180():
         | pressure | 101325 or None |  
         '''
         try:
-            return 44330*(1-(self.get_pressure()/self.baseline)**(1/5.255))
+            return -7990*math.log(self.get_pressure()/self.baseline)
+
         except ZeroDivisionError:
             print('baseline can\'t be zero')
             return None
