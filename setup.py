@@ -9,7 +9,7 @@ setup(
     version='0.1',
     author='Sebastian Plamauer',
     author_email='oeplse@gmail.co',
-    packages=['bmp180', 'bmp180.test'],
+    packages=['bmp180'],
     url='https://github.com/turbinenreiter/micropython-bmp180',
     license='LICENSE.txt',
     description='Micropython module for the BMP180 pressure sensor.',
