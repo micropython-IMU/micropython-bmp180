@@ -28,13 +28,13 @@ Example:
 from bmp180 import BMP180
 bmp180 = BMP180()
 bmp180.oversample_sett = 2
-temp = bmp180.get_temperature()
-baseline = bmp180.baseline(1000)
-p = bmp180.get_pressure()
-altitude = bmp180.get_altitude()
-print(temp, baseline, p, altitude)
+bmp180.baseline = 101325
+
+temp = bmp180.temperature
+p = bmp180.pressure
+altitude = altitude
+print(temp, p, altitude)
 ```
-Note that in this example the altitude will be around zero, because the pressure measurment is done immediatly after the baseline setting.
 
 Classes
 -------
@@ -46,28 +46,21 @@ Module for the BMP180 pressure sensor.
 Methods
 --------------
 
+``compvaldump()``
+Returns a list of all compensation values.  
 
-``get_altitude()``  
-Calculates and returns the altitude relative to a the baseline.  
+``gauge()``  
+Generator refreshing the measurements. Does not need to be called manually.
 
-``baseline(dt=None)``  
-Measures the pressure for a given time and sets the baseline to  
-the mean of the measurements. If no dt is given it will default  
-to 10 seconds.
+``temperature``  
+Temperature in degree C.  
 
-``gauge_pressure()``  
-Starts the pressure measurement and sets the time it will be  
-finished.
+``pressure``  
+Pressure in mbar.  
 
-``gauge_temperature()``  
-Starts the temperature measurement and sets the time it will be  
-finished.
+``altitude``  
+Altitude in m.  
 
-``get_pressure()``  
-Returns the pressure. If not gauged first, it will do that first.
-
-``get_temperature()``  
-Returns the temperature. If not gauged first, it will do that first.
 
 Instance variables
 ------------------
@@ -83,14 +76,11 @@ Sets the accuracy. Default: 0
 
 ``baseline``  
 Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
-When evoked, the method ``baseline(dt)`` sets this variable to the local pressure.
 To get different altitudes, use this as baselines:
 
 | altitude |       baseline |  
 |:--------:|:--------------:|  
-| absolute |     baseline() |  
+| absolute | local pressure |  
 | true     |        QNH*100 |  
 | pressure | 101325 or None |  
 
-``temp_comp_sample_rate``  
-The refresh rate of the temperature measurment for compensating pressure in Hz.
