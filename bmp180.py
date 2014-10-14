@@ -47,8 +47,8 @@ class BMP180():
         elif side_str == 'Y':
             side = 2
         else:
-            print('pass either X or Y, defaulting to X')
-            side = 1
+            print('pass either X or Y, defaulting to Y')
+            side = 2
 
         # create i2c obect
         _bmp_addr = self._bmp_addr
@@ -88,13 +88,12 @@ class BMP180():
             next(self.gauge())
             pyb.delay(1)
 
-    # dump compensation values
     def compvaldump(self):
         '''
         Returns a list of all compensation values
         '''
         return [self._AC1, self._AC2, self._AC3, self._AC4, self._AC5, self._AC6, 
-                self._B1, self._B2, self._MB, self._MC, self._MD]
+                self._B1, self._B2, self._MB, self._MC, self._MD, self.oversample_sett]
 
     # gauge raw
     def gauge(self):
@@ -140,7 +139,6 @@ class BMP180():
         self._t_temperature_ready = None
         yield None
 
-    # temperature
     @property
     def temperature(self):
         '''
@@ -156,7 +154,6 @@ class BMP180():
         self.B5_raw = X1+X2
         return (((X1+X2)+8)/2**4)/10
 
-    # pressure
     @property
     def pressure(self):
         '''
@@ -190,14 +187,13 @@ class BMP180():
         X2 = (-7357*pressure)/2**16
         return pressure+(X1+X2+3791)/2**4
 
-    # altitude
     @property
     def altitude(self):
         '''
         Altitude in m.
         '''
         try:
-            h = -7990.0*math.log(self.pressure/self.baseline)
+            p = -7990.0*math.log(self.pressure/self.baseline)
         except:
-            h = 0.0
-        return h
+            p = 0.0
+        return p
