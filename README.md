@@ -36,6 +36,9 @@ altitude = altitude
 print(temp, p, altitude)
 ```
 
+Important Notice:  
+Make sure to either use this in fast loops or call gauge() in fast loops to make sure to always get current values. If you call pressure() once and then again 10 seconds later, it will report a 10 seconds old value. Look at the gauge() function in the source to understand this.
+
 Classes
 -------
 ``BMP180``  
