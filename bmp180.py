@@ -43,12 +43,12 @@ class BMP180():
 
         # choose which i2c port to use (note pyb docs were wrong)
         if side_str == 'X':
-            side = 2
-        elif side_str == 'Y':
             side = 1
+        elif side_str == 'Y':
+            side = 2
         else:
             print('pass either X or Y, defaulting to Y')
-            side = 1
+            side = 2
 
         # create i2c obect
         _bmp_addr = self._bmp_addr
