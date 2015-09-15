@@ -41,14 +41,14 @@ class BMP180():
     # init
     def __init__(self, side_str=None):
 
-        # choose which i2c port to use
+        # choose which i2c port to use (note pyb docs were wrong)
         if side_str == 'X':
-            side = 1
-        elif side_str == 'Y':
             side = 2
+        elif side_str == 'Y':
+            side = 1
         else:
             print('pass either X or Y, defaulting to Y')
-            side = 2
+            side = 1
 
         # create i2c obect
         _bmp_addr = self._bmp_addr
@@ -137,7 +137,13 @@ class BMP180():
         self._t_pressure_ready = None
         self._B5 = None
         self._t_temperature_ready = None
-        yield None
+        yield True
+
+    def blocking_read(self):
+        if next(self.gauge()) is not None: # Discard old data
+            pass
+        while next(self.gauge()) is None:
+            pass
 
     @property
     def temperature(self):
@@ -160,7 +166,7 @@ class BMP180():
         Pressure in mbar.
         '''
         next(self.gauge())
-        self.temperature
+        self.temperature # ? What does this do
         try:
             MSB = unp('<h', self.MSB_raw)[0]
             LSB = unp('<h', self.LSB_raw)[0]

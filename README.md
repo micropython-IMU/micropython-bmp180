@@ -32,12 +32,12 @@ bmp180.baseline = 101325
 
 temp = bmp180.temperature
 p = bmp180.pressure
-altitude = altitude
+altitude = bmp180.altitude
 print(temp, p, altitude)
 ```
 
 Important Notice:  
-Make sure to either use this in fast loops or call gauge() in fast loops to make sure to always get current values. If you call pressure() once and then again 10 seconds later, it will report a 10 seconds old value. Look at the gauge() function in the source to understand this.
+Make sure to either use this in fast loops or call gauge() in fast loops to make sure to always get current values. If you call pressure() once and then again 10 seconds later, it will report a 10 seconds old value. Look at the gauge() function in the source to understand this. Alternatively use the blocking_read() method.
 
 Classes
 -------
@@ -56,10 +56,13 @@ Returns a list of all compensation values.
 Generator refreshing the measurements. Does not need to be called manually.
 
 ``temperature``  
-Temperature in degree C.  
+Nonblocking read of temperature in degree C.  
 
 ``pressure``  
-Pressure in mbar.  
+Nonblocking read of pressure in Pascal (divide result by 100 for millibar/hP).  
+
+``blocking_read()``  
+Trigger a read and wait until data is available.  
 
 ``altitude``  
 Altitude in m.  
