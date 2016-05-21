@@ -25,12 +25,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
-from struct import unpack as unp
 import pyb
-import math
+from sensorbase import SensorBase
+from struct import unpack as unp
+from math import log
 
 # BMP180 class
-class BMP180():
+class BMP180(SensorBase):
     '''
     Module for the BMP180 pressure sensor.
     '''
@@ -38,33 +39,24 @@ class BMP180():
     _bmp_addr = 119             # adress of BMP180 is hardcoded on the sensor
 
     # init
-    def __init__(self, side_str=None):
+    def __init__(self, i2c=pyb.I2C(1, pyb.I2C.MASTER)):
 
-        # choose which i2c port to use
-        if side_str == 'X':
-            side = 1
-        elif side_str == 'Y':
-            side = 2
-        else:
-            print('pass either X or Y, defaulting to Y')
-            side = 2
+        # i2c
+        self._bmp_i2c = i2c
+        self.chip_id = self._bmp_i2c.mem_read(2, self._bmp_addr, 0xD0)
 
-        # create i2c obect
-        _bmp_addr = self._bmp_addr
-        self._bmp_i2c = pyb.I2C(side, pyb.I2C.MASTER)
-        self.chip_id = self._bmp_i2c.mem_read(2, _bmp_addr, 0xD0)
         # read calibration data from EEPROM
-        self._AC1 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAA))[0]
-        self._AC2 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAC))[0]
-        self._AC3 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAE))[0]
-        self._AC4 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB0))[0]
-        self._AC5 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB2))[0]
-        self._AC6 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB4))[0]
-        self._B1 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB6))[0]
-        self._B2 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB8))[0]
-        self._MB = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBA))[0]
-        self._MC = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBC))[0]
-        self._MD = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBE))[0]
+        self._AC1 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAA))[0]
+        self._AC2 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAC))[0]
+        self._AC3 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAE))[0]
+        self._AC4 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB0))[0]
+        self._AC5 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB2))[0]
+        self._AC6 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB4))[0]
+        self._B1 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB6))[0]
+        self._B2 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB8))[0]
+        self._MB = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBA))[0]
+        self._MC = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBC))[0]
+        self._MD = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBE))[0]
 
         # settings to be adjusted by user
         self.oversample_setting = 3
@@ -76,20 +68,13 @@ class BMP180():
         self.MSB_raw = None
         self.LSB_raw = None
         self.XLSB_raw = None
-        self.gauge = self.makegauge() # Generator instance
+        self._gauge = self._makegauge() # Generator instance
         for _ in range(128):
-            next(self.gauge)
+            next(self._gauge)
             pyb.delay(1)
 
-    def compvaldump(self):
-        '''
-        Returns a list of all compensation values
-        '''
-        return [self._AC1, self._AC2, self._AC3, self._AC4, self._AC5, self._AC6, 
-                self._B1, self._B2, self._MB, self._MC, self._MD, self.oversample_setting]
-
     # gauge raw
-    def makegauge(self):
+    def _makegauge(self):
         '''
         Generator refreshing the raw measurments.
         '''
@@ -120,79 +105,89 @@ class BMP180():
                 yield None
             yield True
 
-    def blocking_read(self):
-        if next(self.gauge) is not None: # Discard old data
+    def measure(self, what_bitmask=SensorBase.ALL):
+        return next(self._gauge)
+
+    def measure_blocking(self, what_bitmask=SensorBase.ALL):
+        if self.measure() is not None: # Discard old data
             pass
-        while next(self.gauge) is None:
+        while self.measure() is None:
             pass
 
-    @property
-    def oversample_sett(self):
-        return self.oversample_setting
-
-    @oversample_sett.setter
-    def oversample_sett(self, value):
-        if value in range(4):
-            self.oversample_setting = value
-        else:
-            print('oversample_sett can only be 0, 1, 2 or 3, using 3 instead')
-            self.oversample_setting = 3
-
-    @property
-    def temperature(self):
+    def get_fixedp(self, what):
         '''
-        Temperature in degree C.
+        TEMPERATURE in dC as int
+        PRESSURE in Pa as int
         '''
-        next(self.gauge)
-        try:
+        if what == SensorBase.TEMPERATURE:
             UT = unp('>h', self.UT_raw)[0]
-        except:
-            return 0.0
-        X1 = (UT-self._AC6)*self._AC5/2**15
-        X2 = self._MC*2**11/(X1+self._MD)
-        self.B5_raw = X1+X2
-        return (((X1+X2)+8)/2**4)/10
-
-    @property
-    def pressure(self):
-        '''
-        Pressure in mbar.
-        '''
-        next(self.gauge)
-        self.temperature  # Populate self.B5_raw
-        try:
+            X1 = (UT-self._AC6)*self._AC5>>15
+            X2 = (self._MC<<11)//(X1+self._MD)
+            self.B5_raw = X1+X2
+            return ((X1+X2)+8)>>4
+        if what == SensorBase.PRESSURE:
+            self.get_fixedp(SensorBase.TEMPERATURE)
             MSB = unp('<h', self.MSB_raw)[0]
             LSB = unp('<h', self.LSB_raw)[0]
             XLSB = unp('<h', self.XLSB_raw)[0]
-        except:
-            return 0.0
-        UP = ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversample_setting)
-        B6 = self.B5_raw-4000
-        X1 = (self._B2*(B6**2/2**12))/2**11
-        X2 = self._AC2*B6/2**11
-        X3 = X1+X2
-        B3 = ((int((self._AC1*4+X3)) << self.oversample_setting)+2)/4
-        X1 = self._AC3*B6/2**13
-        X2 = (self._B1*(B6**2/2**12))/2**16
-        X3 = ((X1+X2)+2)/2**2
-        B4 = abs(self._AC4)*(X3+32768)/2**15
-        B7 = (abs(UP)-B3) * (50000 >> self.oversample_setting)
-        if B7 < 0x80000000:
-            pressure = (B7*2)/B4
-        else:
-            pressure = (B7/B4)*2
-        X1 = (pressure/2**8)**2
-        X1 = (X1*3038)/2**16
-        X2 = (-7357*pressure)/2**16
-        return pressure+(X1+X2+3791)/2**4
+            UP = ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversample_setting)
+            B6 = self.B5_raw-4000
+            X1 = (self._B2*(B6**2)>>12)>>11
+            X2 = (self._AC2*B6)>>11
+            X3 = X1+X2
+            B3 = (((self._AC1*4+X3) << self.oversample_setting)+2)//4
+            X1 = (self._AC3*B6)>>13
+            X2 = (self._B1*(B6**2)>>12)>>16
+            X3 = ((X1+X2)+2)>>2
+            B4 = (abs(self._AC4)*(X3+32768))>>15
+            B7 = (abs(UP)-B3) * (50000 >> self.oversample_setting)
+            if B7 < 0x80000000:
+                pressure = (B7*2)//B4
+            else:
+                pressure = (B7//B4)*2
+            X1 = (pressure>>8)**2
+            X1 = (X1*3038)>>16
+            X2 = (-7357*pressure)>>16
+            return pressure+(X1+X2+3791)
 
-    @property
+    def get_float(self, what):
+        '''
+        TEMPERATURE in C as float
+        PRESSURE in Pa as float
+        '''
+        if what == SensorBase.TEMPERATURE:
+            UT = unp('>h', self.UT_raw)[0]
+            X1 = (UT-self._AC6)*self._AC5>>15
+            X2 = (self._MC<<11)/(X1+self._MD)
+            self.B5_raw = X1+X2
+            return (((X1+X2)+8)/2**4)/10
+        if what == SensorBase.PRESSURE:
+            self.get_float(SensorBase.TEMPERATURE)
+            MSB = unp('<h', self.MSB_raw)[0]
+            LSB = unp('<h', self.LSB_raw)[0]
+            XLSB = unp('<h', self.XLSB_raw)[0]
+            UP = ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversample_setting)
+            B6 = self.B5_raw-4000
+            X1 = (self._B2*(B6**2/2**12))/2**11
+            X2 = self._AC2*B6/2**11
+            X3 = X1+X2
+            B3 = ((int((self._AC1*4+X3)) << self.oversample_setting)+2)/4
+            X1 = self._AC3*B6/2**13
+            X2 = (self._B1*(B6**2/2**12))/2**16
+            X3 = ((X1+X2)+2)/2**2
+            B4 = abs(self._AC4)*(X3+32768)/2**15
+            B7 = (abs(UP)-B3) * (50000 >> self.oversample_setting)
+            if B7 < 0x80000000:
+                pressure = (B7*2)/B4
+            else:
+                pressure = (B7/B4)*2
+            X1 = (pressure/2**8)**2
+            X1 = (X1*3038)/2**16
+            X2 = (-7357*pressure)/2**16
+            return pressure+(X1+X2+3791)/2**4
+
     def altitude(self):
         '''
-        Altitude in m.
+        ALTITUDE in m
         '''
-        try:
-            p = -7990.0*math.log(self.pressure/self.baseline)
-        except:
-            p = 0.0
-        return p
+        return -7990.0*log(self.get_float(SensorBase.PRESSURE)/self.baseline)
