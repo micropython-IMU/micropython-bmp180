@@ -26,41 +26,35 @@ THE SOFTWARE.
 '''
 
 import pyb
-from sensorbase import SensorBase
+from sensorbase import *
 from struct import unpack as unp
-from math import log
 
-# BMP180 class
+
 class BMP180(SensorBase):
     '''
     Module for the BMP180 pressure sensor.
     '''
 
-    _bmp_addr = 119             # adress of BMP180 is hardcoded on the sensor
+    addr = 119             # adress of BMP180 is hardcoded on the sensor
 
-    # init
-    def __init__(self, i2c=pyb.I2C(1, pyb.I2C.MASTER)):
+    def __init__(self, i2c=pyb.I2C(1, pyb.I2C.MASTER), oversample=3):
 
-        # i2c
-        self._bmp_i2c = i2c
-        self.chip_id = self._bmp_i2c.mem_read(2, self._bmp_addr, 0xD0)
+        self.i2c = i2c
+        self.oversample_setting = oversample
+        self.chip_id = self.i2c.mem_read(2, self.addr, 0xD0)
 
         # read calibration data from EEPROM
-        self._AC1 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAA))[0]
-        self._AC2 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAC))[0]
-        self._AC3 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xAE))[0]
-        self._AC4 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB0))[0]
-        self._AC5 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB2))[0]
-        self._AC6 = unp('>H', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB4))[0]
-        self._B1 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB6))[0]
-        self._B2 = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xB8))[0]
-        self._MB = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBA))[0]
-        self._MC = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBC))[0]
-        self._MD = unp('>h', self._bmp_i2c.mem_read(2, self._bmp_addr, 0xBE))[0]
-
-        # settings to be adjusted by user
-        self.oversample_setting = 3
-        self.baseline = 101325.0
+        self._AC1 = unp('>h', self.i2c.mem_read(2, self.addr, 0xAA))[0]
+        self._AC2 = unp('>h', self.i2c.mem_read(2, self.addr, 0xAC))[0]
+        self._AC3 = unp('>h', self.i2c.mem_read(2, self.addr, 0xAE))[0]
+        self._AC4 = unp('>H', self.i2c.mem_read(2, self.addr, 0xB0))[0]
+        self._AC5 = unp('>H', self.i2c.mem_read(2, self.addr, 0xB2))[0]
+        self._AC6 = unp('>H', self.i2c.mem_read(2, self.addr, 0xB4))[0]
+        self._B1 = unp('>h', self.i2c.mem_read(2, self.addr, 0xB6))[0]
+        self._B2 = unp('>h', self.i2c.mem_read(2, self.addr, 0xB8))[0]
+        self._MB = unp('>h', self.i2c.mem_read(2, self.addr, 0xBA))[0]
+        self._MC = unp('>h', self.i2c.mem_read(2, self.addr, 0xBC))[0]
+        self._MD = unp('>h', self.i2c.mem_read(2, self.addr, 0xBE))[0]
 
         # output raw
         self.UT_raw = None
@@ -73,24 +67,23 @@ class BMP180(SensorBase):
             next(self._gauge)
             pyb.delay(1)
 
-    # gauge raw
     def _makegauge(self):
         '''
         Generator refreshing the raw measurments.
         '''
         delays = (5, 8, 14, 25)
         while True:
-            self._bmp_i2c.mem_write(0x2E, self._bmp_addr, 0xF4)
+            self.i2c.mem_write(0x2E, self.addr, 0xF4)
             t_start = pyb.millis()
             while pyb.elapsed_millis(t_start) <= 5: # 5mS delay
                 yield None
             try:
-                self.UT_raw = self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6)
+                self.UT_raw = self.i2c.mem_read(2, self.addr, 0xF6)
             except:
                 yield None
 
-            self._bmp_i2c.mem_write((0x34+(self.oversample_setting << 6)),
-                                    self._bmp_addr,
+            self.i2c.mem_write((0x34+(self.oversample_setting << 6)),
+                                    self.addr,
                                     0xF4)
 
             t_pressure_ready = delays[self.oversample_setting]
@@ -98,20 +91,39 @@ class BMP180(SensorBase):
             while pyb.elapsed_millis(t_start) <= t_pressure_ready:
                 yield None
             try:
-                self.MSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF6)
-                self.LSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF7)
-                self.XLSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF8)
+                self.MSB_raw = self.i2c.mem_read(1, self.addr, 0xF6)
+                self.LSB_raw = self.i2c.mem_read(1, self.addr, 0xF7)
+                self.XLSB_raw = self.i2c.mem_read(1, self.addr, 0xF8)
             except:
                 yield None
             yield True
 
-    def measure(self, what_bitmask=SensorBase.ALL):
-        return next(self._gauge)
+    def config(self, i2c=None, oversample=None):
+        '''
+        Configure sensor.
+        oversample: 0, 1, 2, or 3
+        i2c: i2c object
+        '''
 
-    def measure_blocking(self, what_bitmask=SensorBase.ALL):
-        if self.measure() is not None: # Discard old data
+        if oversample is not None:
+            if oversample in range(4):
+                self.oversample_setting = oversample
+            else:
+                raise ValueError('oversample has to be 0, 1, 2, 3')
+
+        if i2c is not None:
+            if isinstance(i2c, pyb.I2C):
+                self.i2c = i2c
+            else:
+                raise TypeError('i2c has to be i2c object')
+
+    def measure(self, what_bitmask=ALL):
+        '''
+        Measure values.
+        '''
+        if next(self._gauge): # Discard old data
             pass
-        while self.measure() is None:
+        while next(self._gauge) is None:
             pass
 
     def get_fixedp(self, what):
@@ -119,14 +131,16 @@ class BMP180(SensorBase):
         TEMPERATURE in dC as int
         PRESSURE in Pa as int
         '''
-        if what == SensorBase.TEMPERATURE:
+
+        if what == TEMPERATURE:
             UT = unp('>h', self.UT_raw)[0]
             X1 = (UT-self._AC6)*self._AC5>>15
             X2 = (self._MC<<11)//(X1+self._MD)
             self.B5_raw = X1+X2
             return ((X1+X2)+8)>>4
-        if what == SensorBase.PRESSURE:
-            self.get_fixedp(SensorBase.TEMPERATURE)
+
+        if what == PRESSURE:
+            self.get_fixedp(TEMPERATURE)
             MSB = unp('<h', self.MSB_raw)[0]
             LSB = unp('<h', self.LSB_raw)[0]
             XLSB = unp('<h', self.XLSB_raw)[0]
@@ -155,14 +169,16 @@ class BMP180(SensorBase):
         TEMPERATURE in C as float
         PRESSURE in Pa as float
         '''
-        if what == SensorBase.TEMPERATURE:
+
+        if what == TEMPERATURE:
             UT = unp('>h', self.UT_raw)[0]
             X1 = (UT-self._AC6)*self._AC5>>15
             X2 = (self._MC<<11)/(X1+self._MD)
             self.B5_raw = X1+X2
             return (((X1+X2)+8)/2**4)/10
-        if what == SensorBase.PRESSURE:
-            self.get_float(SensorBase.TEMPERATURE)
+
+        if what == PRESSURE:
+            self.get_float(TEMPERATURE)
             MSB = unp('<h', self.MSB_raw)[0]
             LSB = unp('<h', self.LSB_raw)[0]
             XLSB = unp('<h', self.XLSB_raw)[0]
@@ -185,9 +201,3 @@ class BMP180(SensorBase):
             X1 = (X1*3038)/2**16
             X2 = (-7357*pressure)/2**16
             return pressure+(X1+X2+3791)/2**4
-
-    def altitude(self):
-        '''
-        ALTITUDE in m
-        '''
-        return -7990.0*log(self.get_float(SensorBase.PRESSURE)/self.baseline)

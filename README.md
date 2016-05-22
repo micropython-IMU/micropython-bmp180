@@ -47,21 +47,17 @@ Module for the BMP180 pressure sensor.
 Methods
 --------------
 
-``measure()``
-Initiates a non-blocking measurement.  
+``config(i2c, oversample)``
+Configure the sensor.  
 
-``measure_blocking()``  
-Initiates a blocking measurement.
+``measure()``
+Initiates a blocking measurement.  
 
 ``get_fixedp(VALUE)``  
 Returns VALUE as int.  
 
 ``get_float(WHAT)``  
 Returns VALUE as float.  
-
-``altitude``  
-Altitude in m.  
-
 
 Instance variables
 ------------------
@@ -74,6 +70,15 @@ Sets the accuracy. Default: 0
 * 1
 * 2
 * 3 highest accuracy, slowest
+
+Modules
+-------
+``altimeter``  
+Provides a function to calculate altitude from pressure.
+
+``altitude(pressure, baseline)``  
+Input in Pa.
+Altitude in m.  
 
 ``baseline``  
 Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
