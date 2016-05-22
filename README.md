@@ -77,12 +77,13 @@ Modules
 ``altimeter``  
 Provides a function to calculate altitude from pressure.
 
+Functions
+---------
+
 ``altitude(pressure, baseline)``  
 Input in Pa.
 Altitude in m.  
-
-``baseline``  
-Pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
+``baseline`` is the pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
 To get different altitudes, use this as baselines:
 
 | altitude |       baseline |  
