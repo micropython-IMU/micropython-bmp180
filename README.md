@@ -81,7 +81,7 @@ Functions
 ---------
 
 ``altitude(pressure, baseline)``  
-Input in Pa.
+Input in Pa.  
 Altitude in m.  
 Baseline is the pressure at Main Sea Level. The default is 101325 Pa, but you can use your local QNH in Pa.  
 To get different altitudes, use this as baselines:
