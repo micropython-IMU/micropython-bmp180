@@ -25,16 +25,17 @@ If you have any questions, open an issue.
 
 Example:
 ```python
-from bmp180 import BMP180
+from bmp180 import *
+from altimeter import altitude
+
 bmp180 = BMP180()
-bmp180.oversample_sett = 2
-bmp180.baseline = 101325
+bmp180.config(oversample=2)
 
-bmp180.measure_blocking()
+bmp180.measure()
 
-temp = bmp180.get_fixedp(bmp180.TEMPERATURE)
-p = bmp180.get_float(bmp180.PRESSURE)
-altitude = bmp180.altitude()
+temp = bmp180.get_fixedp(TEMPERATURE)
+p = bmp180.get_float(PRESSURE)
+alt = altitude(p, 101325)
 ```
 
 Classes
