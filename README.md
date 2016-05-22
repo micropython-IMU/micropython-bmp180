@@ -48,10 +48,10 @@ Module for the BMP180 pressure sensor.
 Methods
 --------------
 
-``config(i2c, oversample)``
+``config(i2c, oversample)``  
 Configure the sensor.  
 
-``measure()``
+``measure()``  
 Initiates a blocking measurement.  
 
 ``get_fixedp(VALUE)``  
