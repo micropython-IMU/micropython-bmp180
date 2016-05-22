@@ -57,7 +57,7 @@ Initiates a blocking measurement.
 ``get_fixedp(VALUE)``  
 Returns VALUE as int.  
 
-``get_float(WHAT)``  
+``get_float(VALUE)``  
 Returns VALUE as float.  
 
 Instance variables
