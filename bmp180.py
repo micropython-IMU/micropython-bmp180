@@ -25,9 +25,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
-from struct import unpack as unp
-import pyb
+from ustruct import unpack as unp
+from machine import I2C, Pin
 import math
+import time
 
 # BMP180 class
 class BMP180():
@@ -51,20 +52,21 @@ class BMP180():
 
         # create i2c obect
         _bmp_addr = self._bmp_addr
-        self._bmp_i2c = pyb.I2C(side, pyb.I2C.MASTER)
-        self.chip_id = self._bmp_i2c.mem_read(2, _bmp_addr, 0xD0)
+        self._bmp_i2c = I2C(scl=Pin(5), sda=Pin(4), freq=100000)
+        self._bmp_i2c.start()
+        self.chip_id = self._bmp_i2c.readfrom_mem(_bmp_addr, 0xD0, 2)
         # read calibration data from EEPROM
-        self._AC1 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAA))[0]
-        self._AC2 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAC))[0]
-        self._AC3 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xAE))[0]
-        self._AC4 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB0))[0]
-        self._AC5 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB2))[0]
-        self._AC6 = unp('>H', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB4))[0]
-        self._B1 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB6))[0]
-        self._B2 = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xB8))[0]
-        self._MB = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBA))[0]
-        self._MC = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBC))[0]
-        self._MD = unp('>h', self._bmp_i2c.mem_read(2, _bmp_addr, 0xBE))[0]
+        self._AC1 = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xAA, 2))[0]
+        self._AC2 = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xAC, 2))[0]
+        self._AC3 = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xAE, 2))[0]
+        self._AC4 = unp('>H', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xB0, 2))[0]
+        self._AC5 = unp('>H', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xB2, 2))[0]
+        self._AC6 = unp('>H', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xB4, 2))[0]
+        self._B1 = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xB6, 2))[0]
+        self._B2 = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xB8, 2))[0]
+        self._MB = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xBA, 2))[0]
+        self._MC = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xBC, 2))[0]
+        self._MD = unp('>h', self._bmp_i2c.readfrom_mem(_bmp_addr, 0xBE, 2))[0]
 
         # settings to be adjusted by user
         self.oversample_setting = 3
@@ -79,7 +81,7 @@ class BMP180():
         self.gauge = self.makegauge() # Generator instance
         for _ in range(128):
             next(self.gauge)
-            pyb.delay(1)
+            time.sleep_ms(1)
 
     def compvaldump(self):
         '''
@@ -95,27 +97,23 @@ class BMP180():
         '''
         delays = (5, 8, 14, 25)
         while True:
-            self._bmp_i2c.mem_write(0x2E, self._bmp_addr, 0xF4)
-            t_start = pyb.millis()
-            while pyb.elapsed_millis(t_start) <= 5: # 5mS delay
+            self._bmp_i2c.writeto_mem(self._bmp_addr, 0xF4, bytearray([0x2E]))
+            t_start = time.ticks_ms()
+            while (time.ticks_ms() - t_start) <= 5: # 5mS delay
                 yield None
             try:
-                self.UT_raw = self._bmp_i2c.mem_read(2, self._bmp_addr, 0xF6)
+                self.UT_raw = self._bmp_i2c.readfrom_mem(self._bmp_addr, 0xF6, 2)
             except:
                 yield None
-
-            self._bmp_i2c.mem_write((0x34+(self.oversample_setting << 6)),
-                                    self._bmp_addr,
-                                    0xF4)
-
+            self._bmp_i2c.writeto_mem(self._bmp_addr, 0xF4, bytearray([0x34+(self.oversample_setting << 6)]))
             t_pressure_ready = delays[self.oversample_setting]
-            t_start = pyb.millis()
-            while pyb.elapsed_millis(t_start) <= t_pressure_ready:
+            t_start = time.ticks_ms()
+            while (time.ticks_ms() - t_start) <= t_pressure_ready:
                 yield None
             try:
-                self.MSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF6)
-                self.LSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF7)
-                self.XLSB_raw = self._bmp_i2c.mem_read(1, self._bmp_addr, 0xF8)
+                self.MSB_raw = self._bmp_i2c.readfrom_mem(self._bmp_addr, 0xF6, 1)
+                self.LSB_raw = self._bmp_i2c.readfrom_mem(self._bmp_addr, 0xF7, 1)
+                self.XLSB_raw = self._bmp_i2c.readfrom_mem(self._bmp_addr, 0xF8, 1)
             except:
                 yield None
             yield True
