@@ -39,20 +39,11 @@ class BMP180():
     _bmp_addr = 119             # adress of BMP180 is hardcoded on the sensor
 
     # init
-    def __init__(self, side_str=None):
-
-        # choose which i2c port to use
-        if side_str == 'X':
-            side = 1
-        elif side_str == 'Y':
-            side = 2
-        else:
-            print('pass either X or Y, defaulting to Y')
-            side = 2
+    def __init__(self, i2c_bus):
 
         # create i2c obect
         _bmp_addr = self._bmp_addr
-        self._bmp_i2c = I2C(scl=Pin(5), sda=Pin(4), freq=100000)
+        self._bmp_i2c = i2c_bus
         self._bmp_i2c.start()
         self.chip_id = self._bmp_i2c.readfrom_mem(_bmp_addr, 0xD0, 2)
         # read calibration data from EEPROM
