@@ -150,9 +150,9 @@ class BMP180():
         next(self.gauge)
         self.temperature  # Populate self.B5_raw
         try:
-            MSB = unp('<h', self.MSB_raw)[0]
-            LSB = unp('<h', self.LSB_raw)[0]
-            XLSB = unp('<h', self.XLSB_raw)[0]
+            MSB = unp('B', self.MSB_raw)[0]
+            LSB = unp('B', self.LSB_raw)[0]
+            XLSB = unp('B', self.XLSB_raw)[0]
         except:
             return 0.0
         UP = ((MSB << 16)+(LSB << 8)+XLSB) >> (8-self.oversample_setting)
