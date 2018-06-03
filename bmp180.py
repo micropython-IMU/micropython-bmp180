@@ -134,7 +134,7 @@ class BMP180():
         '''
         next(self.gauge)
         try:
-            UT = unp('>h', self.UT_raw)[0]
+            UT = unp('>H', self.UT_raw)[0]
         except:
             return 0.0
         X1 = (UT-self._AC6)*self._AC5/2**15
